@@ -1,167 +1,332 @@
-import React, { useState } from "react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Azoul – Workplace Pulse</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">Azoul</div>
+    <div class="subtitle">Workplace Pulse & Wellbeing</div>
+  </header>
 
-export default function App() {
-  const [stress, setStress] = useState("");
-  const [support, setSupport] = useState("");
-  const [motivation, setMotivation] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const [burnoutScore, setBurnoutScore] = useState(null);
-
-  function calculateBurnout(stress, support, motivation) {
-    const score =
-      (parseInt(stress) +
-        (10 - parseInt(support)) +
-        (10 - parseInt(motivation))) /
-      3;
-    return score.toFixed(1);
-  }
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const score = calculateBurnout(stress, support, motivation);
-    setBurnoutScore(score);
-    setSubmitted(true);
-  };
-
-  return (
-    <div style={styles.page}>
-      <header style={styles.header}>
-        <h1 style={styles.logo}>Azoul</h1>
-        <p style={styles.tagline}>Weekly Employee Burnout Check-In</p>
-      </header>
-
-      <div style={styles.card}>
-        {!submitted ? (
-          <form onSubmit={handleSubmit}>
-            <div style={styles.inputGroup}>
-              <label>How stressed are you this week? (1-10)</label>
-              <input
-                type="number"
-                min="1"
-                max="10"
-                required
-                value={stress}
-                onChange={(e) => setStress(e.target.value)}
-                style={styles.input}
-              />
-            </div>
-
-            <div style={styles.inputGroup}>
-              <label>Do you feel supported at work? (1-10)</label>
-              <input
-                type="number"
-                min="1"
-                max="10"
-                required
-                value={support}
-                onChange={(e) => setSupport(e.target.value)}
-                style={styles.input}
-              />
-            </div>
-
-            <div style={styles.inputGroup}>
-              <label>How motivated are you this week? (1-10)</label>
-              <input
-                type="number"
-                min="1"
-                max="10"
-                required
-                value={motivation}
-                onChange={(e) => setMotivation(e.target.value)}
-                style={styles.input}
-              />
-            </div>
-
-            <button type="submit" style={styles.button}>
-              Submit Check-In
-            </button>
-          </form>
-        ) : (
-          <div style={styles.resultBox}>
-            <h2>Your Burnout Risk Score:</h2>
-            <div style={styles.score}>{burnoutScore}</div>
-            <p>
-              {burnoutScore > 7
-                ? "⚠ High burnout risk"
-                : burnoutScore > 4
-                ? "Moderate burnout risk"
-                : "Low burnout risk"}
-            </p>
-          </div>
-        )}
+  <main class="container">
+    <!-- Mood & Sentiment Panel -->
+    <section class="card mood">
+      <h2>Employee Mood Check‑in</h2>
+      <p class="help">Tap an emoji or share quick feedback. This is opt‑in and private.</p>
+      <div class="emoji-row" id="emojiRow">
+        <button class="emoji" data-score="-2" aria-label="Mad">😡</button>
+        <button class="emoji" data-score="-1" aria-label="Annoyed">😠</button>
+        <button class="emoji" data-score="0" aria-label="Neutral">😐</button>
+        <button class="emoji" data-score="1" aria-label="Good">🙂</button>
+        <button class="emoji" data-score="2" aria-label="Great">😃</button>
       </div>
 
-      <footer style={styles.footer}>
-        © 2026 Azoul — Protecting Teams. Preventing Burnout.
-      </footer>
-    </div>
-  );
+      <textarea id="feedback" placeholder="(Optional) Tell us about your shift…"></textarea>
+      <button id="analyzeBtn" class="primary">Analyze Mood</button>
+
+      <div class="result">
+        <div id="predLabel" class="pill">Predicted Mood: —</div>
+        <div id="alertBanner" class="alert hidden">⚠️ Manager Notification: multiple 'Annoyed/Mad' flags detected this week for this team/shift.</div>
+      </div>
+    </section>
+
+    <!-- Problem Areas with Actions -->
+    <section class="grid">
+      <div class="card kpi">
+        <h3>Low Wages</h3>
+        <p>Wage parity & compression watch.</p>
+        <div class="stat">
+          <div class="stat-label">Parity Score</div>
+          <div class="stat-value" id="parityScore">72</div>
+        </div>
+        <button class="secondary" onclick="openTask('Propose pay adjustment')">Propose Adjustment</button>
+      </div>
+
+      <div class="card kpi">
+        <h3>Work Environment</h3>
+        <p>Stress & incident trends.</p>
+        <div class="bar-wrap">
+          <label>Bullying/Harassment Reports</label>
+          <div class="bar"><span style="width: 35%"></span></div>
+        </div>
+        <button class="secondary" onclick="openTask('Open private HR case')">Open HR Case</button>
+      </div>
+
+      <div class="card kpi">
+        <h3>Career Advancement</h3>
+        <p>Skills & training progress.</p>
+        <div class="bar-wrap">
+          <label>Training Completion</label>
+          <div class="bar good"><span style="width: 64%"></span></div>
+        </div>
+        <button class="secondary" onclick="openTask('Enroll team in training')">Assign Training</button>
+      </div>
+
+      <div class="card kpi">
+        <h3>Job Security</h3>
+        <p>Automation risk vs. upskilling.</p>
+        <div class="stat">
+          <div class="stat-label">Cross‑Trained</div>
+          <div class="stat-value" id="crossTrained">48%</div>
+        </div>
+        <button class="secondary" onclick="openTask('Schedule cross‑training')">Schedule Cross‑training</button>
+      </div>
+
+      <div class="card kpi">
+        <h3>Industry Shifts</h3>
+        <p>Retention & exit reasons.</p>
+        <div class="bar-wrap">
+          <label>Intent to Stay (90d)</label>
+          <div class="bar warn"><span style="width: 58%"></span></div>
+        </div>
+        <button class="secondary" onclick="openTask('Draft retention plan')">Draft Retention Plan</button>
+      </div>
+    </section>
+
+    <!-- Mini Trends -->
+    <section class="card">
+      <h2>Team Mood Trend (Last 7 Days)</h2>
+      <div class="trend" id="trend"></div>
+      <small class="muted">* Demo data for visualization. Connect to your data source to populate.</small>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <div>Quasinss</div>
+    <small>© 2026 Azoul Workplace Pulse • Privacy-first • Opt‑in</small>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
+:root{
+  --blue-900:#051937;
+  --blue-700:#0B3A7A;
+  --blue-500:#1E6FE3;
+  --blue-400:#4BA3F5;
+  --blue-200:#B9DBFF;
+  --bg:#061A33;
+  --card:#0B2548;
+  --text:#E6F0FF;
+  --muted:#9FB7D9;
+  --good:#2ECC71;
+  --warn:#F5A623;
+  --bad:#E74C3C;
 }
 
-const styles = {
-  page: {
-    fontFamily: "Arial, sans-serif",
-    backgroundColor: "#F4F9FB",
-    minHeight: "100vh",
-  },
-  header: {
-    backgroundColor: "#0077B6",
-    color: "white",
-    textAlign: "center",
-    padding: "30px 0",
-  },
-  logo: {
-    margin: 0,
-    fontSize: "36px",
-    fontWeight: "bold",
-    letterSpacing: "2px",
-  },
-  tagline: {
-    marginTop: "8px",
-    fontSize: "14px",
-    opacity: 0.9,
-  },
-  card: {
-    backgroundColor: "white",
-    maxWidth: "450px",
-    margin: "40px auto",
-    padding: "30px",
-    borderRadius: "10px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-  },
-  inputGroup: {
-    marginBottom: "20px",
-    display: "flex",
-    flexDirection: "column",
-  },
-  input: {
-    marginTop: "8px",
-    padding: "10px",
-    borderRadius: "6px",
-    border: "1px solid #ccc",
-  },
-  button: {
-    width: "100%",
-    padding: "12px",
-    backgroundColor: "#00B4D8",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    fontWeight: "bold",
-    cursor: "pointer",
-  },
-  resultBox: {
-    textAlign: "center",
-  },
-  score: {
-    fontSize: "48px",
-    color: "#0077B6",
-    margin: "20px 0",
-  },
-  footer: {
-    textAlign: "center",
-    padding: "20px",
-    fontSize: "12px",
-    color: "#555",
-  },
-};
+*{ box-sizing:border-box; }
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color:var(--text);
+  background: radial-gradient(circle at 20% 10%, var(--blue-700), var(--bg));
+  min-height:100vh;
+  display:flex; flex-direction:column;
+}
+
+.app-header{
+  padding:20px 24px;
+  background: linear-gradient(90deg, var(--blue-900), var(--blue-700));
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.brand{ font-size:28px; font-weight:800; letter-spacing:.5px; }
+.subtitle{ color:var(--muted); margin-top:4px; }
+
+.container{ width:min(1200px, 92%); margin:24px auto; display:flex; flex-direction:column; gap:20px; }
+
+.card{
+  background:var(--card);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:14px;
+  padding:16px 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap:16px;
+}
+
+.kpi h3{ margin:6px 0 8px; }
+.kpi p{ margin:0 0 12px; color:var(--muted); font-size:14px; }
+
+.stat{ display:flex; align-items:center; gap:12px; }
+.stat-label{ color:var(--muted); }
+.stat-value{ font-size:28px; font-weight:700; }
+
+.bar-wrap{ margin:6px 0 6px; }
+.bar{
+  height:12px; background:rgba(255,255,255,.09); border-radius:20px; overflow:hidden;
+}
+.bar span{
+  display:block; height:100%; background:var(--bad);
+}
+.bar.good span{ background:var(--good); }
+.bar.warn span{ background:var(--warn); }
+
+.mood h2{ margin:6px 0 4px; }
+.help{ color:var(--muted); margin:0 0 10px; }
+.emoji-row{ display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+.emoji{
+  font-size:22px; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.05); color:#fff; cursor:pointer;
+}
+.emoji:focus,.emoji:hover{ outline:2px solid var(--blue-400); }
+
+textarea{
+  width:100%; min-height:90px; border-radius:10px; border:1px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.04); color:#fff; padding:10px; resize:vertical;
+}
+
+.primary, .secondary{
+  padding:10px 12px; border-radius:10px; border:1px solid transparent; cursor:pointer;
+}
+.primary{ background:var(--blue-500); color:#fff; border-color:rgba(255,255,255,.12); margin-top:8px; }
+.secondary{ background:rgba(255,255,255,.05); color:#fff; border:1px solid rgba(255,255,255,.15); margin-top:8px; }
+.primary:hover{ filter:brightness(1.08); }
+.secondary:hover{ background:rgba(255,255,255,.08); }
+
+.pill{
+  display:inline-block; margin-top:10px; padding:6px 10px; border-radius:999px;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15);
+}
+
+.alert{
+  margin-top:10px; padding:10px 12px; border-radius:10px; background:rgba(231,76,60,.15);
+  border:1px solid rgba(231,76,60,.35);
+}
+.hidden{ display:none; }
+
+.trend{
+  display:grid; grid-template-columns: repeat(7, 1fr); gap:8px; margin-top:8px;
+}
+.trend .day{
+  height:52px; border-radius:8px; background:rgba(255,255,255,.08);
+  display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600;
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.muted{ color:var(--muted); }
+
+.app-footer{
+  margin-top:auto; padding:16px 24px;
+  display:flex; flex-direction:column; gap:4px; align-items:center; justify-content:center;
+  color:var(--text);
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,.2));
+  border-top:1px solid rgba(255,255,255,.08);
+  letter-spacing:.4px;
+}
+// Simple lexicon-based sentiment (demo). Real app: use Azure AI Language or similar.
+const angerWords = [
+  "angry","mad","annoyed","upset","furious","rage","irritated","frustrated",
+  "harassed","bullying","toxic","overworked","stress","stressed","exhausted",
+  "unfair","low wages","underpaid","pay","harass","yelled","insult"
+];
+
+let emojiScore = null;
+const predLabel = document.getElementById('predLabel');
+const alertBanner = document.getElementById('alertBanner');
+
+document.getElementById('emojiRow').addEventListener('click', (e)=>{
+  if(e.target.classList.contains('emoji')){
+    emojiScore = Number(e.target.dataset.score);
+    showPrediction();
+  }
+});
+
+document.getElementById('analyzeBtn').addEventListener('click', ()=>{
+  showPrediction();
+});
+
+function classify(text, emoji) {
+  text = (text || "").toLowerCase();
+  let lexScore = 0;
+  angerWords.forEach(w=>{
+    if(text.includes(w)) lexScore -= 1;
+  });
+
+  // combine emoji (‑2 … +2) with lexicon
+  const total = (emoji ?? 0) + lexScore;
+
+  if(total <= -2) return "Mad";
+  if(total === -1) return "Annoyed";
+  if(total === 0) return "Neutral";
+  if(total === 1) return "Good";
+  return "Great";
+}
+
+function showPrediction(){
+  const txt = document.getElementById('feedback').value;
+  const cls = classify(txt, emojiScore);
+
+  predLabel.textContent = `Predicted Mood: ${cls}`;
+  predLabel.style.borderColor = colorFor(cls);
+  predLabel.style.backgroundColor = bgFor(cls);
+
+  // Demo alert logic: trigger banner if mood is Annoyed/Mad 3 times in a week
+  // In real use, this aggregates multiple employees and days.
+  const key = 'demoFlags';
+  const flags = JSON.parse(localStorage.getItem(key) || '[]');
+  if(cls === "Mad" || cls === "Annoyed"){
+    flags.push({t:Date.now(), cls});
+    localStorage.setItem(key, JSON.stringify(flags.slice(-7))); // keep last 7
+  }
+  const recentNeg = flags.filter(x=> x.cls === "Mad" || x.cls === "Annoyed").length;
+  if(recentNeg >= 3){
+    alertBanner.classList.remove('hidden');
+  } else {
+    alertBanner.classList.add('hidden');
+  }
+
+  // Update the trend with a random-ish representation
+  renderTrend();
+}
+
+function colorFor(cls){
+  switch(cls){
+    case "Mad": return "rgba(231,76,60,.9)";
+    case "Annoyed": return "rgba(245,166,35,.9)";
+    case "Neutral": return "rgba(255,255,255,.55)";
+    case "Good": return "rgba(46,204,113,.9)";
+    case "Great": return "rgba(46,204,113,.95)";
+    default: return "rgba(255,255,255,.35)";
+  }
+}
+function bgFor(cls){
+  switch(cls){
+    case "Mad": return "rgba(231,76,60,.15)";
+    case "Annoyed": return "rgba(245,166,35,.15)";
+    case "Neutral": return "rgba(255,255,255,.06)";
+    case "Good": return "rgba(46,204,113,.15)";
+    case "Great": return "rgba(46,204,113,.18)";
+    default: return "rgba(255,255,255,.06)";
+  }
+}
+
+function renderTrend(){
+  const trendEl = document.getElementById('trend');
+  trendEl.innerHTML = '';
+  const moods = ["Mad","Annoyed","Neutral","Good","Great"];
+  for(let i=0;i<7;i++){
+    const cls = moods[Math.floor(Math.random()*moods.length)];
+    const d = document.createElement('div');
+    d.className = 'day';
+    d.style.backgroundColor = bgFor(cls);
+    d.style.borderColor = colorFor(cls);
+    d.textContent = cls[0];
+    trendEl.appendChild(d);
+  }
+}
+
+// Action stub
+function openTask(name){
+  alert(`Task created: ${name}\n\n(This is a demo. In production, this would create a ticket or start a workflow.)`);
+}
+
+// Initial render
+renderTrend();
